@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastro da Rifa</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="student-body">
+  <main class="student-page">
+    <section class="student-hero card">
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+        <a href="admin.html" class="btn btn-light">Área do Admin</a>
+      </div>
+      <div>
+        <span class="badge gold">Cadastro dos alunos</span>
+        <h1>Escolha seu número e faça seu cadastro</h1>
+        <p class="muted">
+          Selecione um número disponível e preencha seus dados.
+        </p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <small>Total</small>
+          <strong id="studentTotal">200</strong>
+        </div>
+        <div class="stat-card">
+          <small>Reservados</small>
+          <strong id="studentReserved">0</strong>
+        </div>
+        <div class="stat-card dark">
+          <small>Disponíveis</small>
+          <strong id="studentAvailable">200</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-top wrap">
+        <div>
+          <h2>Números da rifa</h2>
+          <p class="muted">Escuro = reservado | Claro = disponível</p>
+        </div>
+
+        <div class="filters">
+          <button class="btn btn-dark student-filter active" data-filter="todos" type="button">Todos</button>
+          <button class="btn btn-light student-filter" data-filter="disponiveis" type="button">Disponíveis</button>
+          <button class="btn btn-light student-filter" data-filter="reservados" type="button">Reservados</button>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><i class="legend-box available"></i> Disponível</span>
+        <span><i class="legend-box selected"></i> Selecionado</span>
+        <span><i class="legend-box reserved"></i> Reservado</span>
+      </div>
+
+      <div id="studentNumbersGrid" class="numbers-grid"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-top">
+        <div>
+          <h2>Preencha seus dados</h2>
+          <p class="muted">Seu cadastro será salvo no sistema.</p>
+        </div>
+      </div>
+
+      <form id="studentForm" class="form-grid">
+        <div class="form-group">
+          <label for="studentName">Nome</label>
+          <input type="text" id="studentName" placeholder="Digite seu nome" required />
+        </div>
+
+        <div class="form-group">
+          <label for="studentPhone">Telefone</label>
+          <input type="text" id="studentPhone" placeholder="Digite seu telefone" required />
+        </div>
+
+        <div class="form-group">
+          <label for="studentNumber">Número escolhido</label>
+          <input type="number" id="studentNumber" min="1" max="200" placeholder="Escolha um número" required />
+        </div>
+
+        <div class="form-group">
+          <label for="studentReferral">Quem indicou</label>
+          <input type="text" id="studentReferral" placeholder="Quem indicou?" />
+        </div>
+
+        <div class="full-width action-row">
+          <button type="submit" class="btn btn-dark">Salvar cadastro</button>
+        </div>
+      </form>
+
+      <div id="studentMessage" class="message"></div>
+    </section>
+  </main>
+
+  <script type="module" src="aluno.js"></script>
+</body>
+</html>

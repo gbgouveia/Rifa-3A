@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel do Admin</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="admin-body">
+  <main class="admin-page">
+    <section id="loginScreen" class="login-card">
+      <span class="badge gold">Admin</span>
+      <h1>Painel da Rifa</h1>
+      <p class="muted">Entre com email e senha do administrador.</p>
+
+      <form id="loginForm" class="form-grid login-grid">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="admin@email.com" required />
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Senha</label>
+          <input type="password" id="loginPassword" placeholder="Digite sua senha" required />
+        </div>
+
+        <div class="full-width">
+          <button type="submit" class="btn btn-dark full-btn">Entrar</button>
+        </div>
+      </form>
+
+      <div id="loginMessage" class="message"></div>
+    </section>
+
+    <section id="adminApp" class="hidden">
+      <header class="admin-header card">
+        <div>
+          <span class="badge gold">Painel administrativo</span>
+          <h1>Organização da rifa</h1>
+          <p class="muted">Gerencie participantes e exporte a planilha.</p>
+        </div>
+
+        <div class="header-actions">
+          <span id="adminUserEmail" class="badge green">Logado</span>
+          <button id="logoutBtn" class="btn btn-light" type="button">Sair</button>
+        </div>
+      </header>
+
+      <section class="stats-grid admin-stats">
+        <div class="stat-card">
+          <small>Total</small>
+          <strong id="adminTotal">200</strong>
+        </div>
+        <div class="stat-card">
+          <small>Reservados</small>
+          <strong id="adminReserved">0</strong>
+        </div>
+        <div class="stat-card dark">
+          <small>Disponíveis</small>
+          <strong id="adminAvailable">200</strong>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-top wrap">
+          <div>
+            <h2>Números da rifa</h2>
+            <p class="muted">Filtre como quiser para acompanhar tudo.</p>
+          </div>
+
+          <div class="filters">
+            <button class="btn btn-dark admin-filter active" data-filter="todos" type="button">Todos</button>
+            <button class="btn btn-light admin-filter" data-filter="disponiveis" type="button">Disponíveis</button>
+            <button class="btn btn-light admin-filter" data-filter="reservados" type="button">Reservados</button>
+          </div>
+        </div>
+
+        <div id="adminNumbersGrid" class="numbers-grid"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-top wrap">
+          <div>
+            <h2>Participantes</h2>
+            <p class="muted">Busque, organize e exporte a planilha.</p>
+          </div>
+
+          <div class="toolbar">
+            <input type="text" id="searchInput" placeholder="Buscar por nome, telefone, número ou indicação" />
+            <button id="clearSearchBtn" class="btn btn-light" type="button">Limpar</button>
+            <button id="exportBtn" class="btn btn-green" type="button">Exportar Excel</button>
+          </div>
+        </div>
+
+        <div id="searchInfo" class="search-info"></div>
+        <div id="participantsList" class="participants-list"></div>
+      </section>
+
+      <div id="adminMessage" class="message"></div>
+    </section>
+  </main>
+
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
