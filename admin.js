@@ -426,8 +426,9 @@ function printFullGrid() {
 
   for (let i = 1; i <= TOTAL_NUMBERS; i++) {
     const reserved = isReserved(i);
+
     cells.push(`
-      <div class="print-cell ${reserved ? "reserved" : "available"}">
+      <div class="cell ${reserved ? "reserved" : ""}">
         ${i}
       </div>
     `);
@@ -438,125 +439,61 @@ function printFullGrid() {
   printWindow.document.write(`
     <html>
       <head>
-        <title>Tabela Completa da Rifa</title>
+        <title>Tabela da Rifa</title>
         <style>
           @page {
             size: A4 portrait;
-            margin: 8mm;
-          }
-
-          * {
-            box-sizing: border-box;
+            margin: 4mm;
           }
 
           html, body {
-            width: 210mm;
-            height: 297mm;
             margin: 0;
             padding: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            color: #111;
+            font-family: Arial, sans-serif;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
 
           body {
-            padding: 4mm;
+            padding: 3mm;
           }
 
-          .header {
+          h1 {
+            font-size: 12px;
             text-align: center;
-            margin-bottom: 4mm;
+            margin: 0 0 3mm 0;
           }
 
-          .header h1 {
-            font-size: 16px;
-            margin: 0 0 2mm 0;
-          }
-
-          .header p {
-            font-size: 10px;
-            margin: 0;
-          }
-
-          .legend {
-            display: flex;
-            justify-content: center;
-            gap: 12mm;
-            margin: 4mm 0 5mm 0;
-            font-size: 10px;
-          }
-
-          .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 2mm;
-          }
-
-          .legend-box {
-            width: 5mm;
-            height: 5mm;
-            border: 1px solid #333;
-          }
-
-          .legend-box.available {
-            background: #ffffff;
-          }
-
-          .legend-box.reserved {
-            background: #111827;
-          }
-
-          .print-grid {
-            width: 100%;
+          .grid {
             display: grid;
             grid-template-columns: repeat(10, 1fr);
-            gap: 2mm;
+            gap: 1.5mm;
           }
 
-          .print-cell {
-            height: 16mm;
+          .cell {
+            height: 11mm;
             border: 1px solid #444;
             border-radius: 2mm;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            font-weight: 700;
-            background: #ffffff;
-            color: #111111;
+            font-size: 10px;
+            font-weight: bold;
+            background: white;
           }
 
-          .print-cell.reserved {
-            background: #111827 !important;
-            color: #ffffff !important;
-            border-color: #111827 !important;
-          }
-
-          .print-cell.available {
-            background: #ffffff !important;
-            color: #111111 !important;
+          .cell.reserved {
+            background: #000 !important;
+            color: #fff !important;
+            border-color: #000 !important;
           }
         </style>
       </head>
+
       <body>
-        <div class="header">
-          <h1>Tabela Completa da Rifa</h1>
-          <p>Os números escuros já estão reservados</p>
-        </div>
+        <h1>Tabela da Rifa (200 números)</h1>
 
-        <div class="legend">
-          <div class="legend-item">
-            <span class="legend-box available"></span>
-            <span>Disponível</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-box reserved"></span>
-            <span>Reservado</span>
-          </div>
-        </div>
-
-        <div class="print-grid">
+        <div class="grid">
           ${cells.join("")}
         </div>
       </body>
@@ -568,8 +505,8 @@ function printFullGrid() {
 
   setTimeout(() => {
     printWindow.print();
-  }, 300);
-}
+  }, 200);
+} 
 
 function initFirebase() {
   if (!isFirebaseConfigured()) {
