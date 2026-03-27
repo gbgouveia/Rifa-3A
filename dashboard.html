@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard de Vendas</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="admin-body">
+  <main class="admin-page">
+    <header class="admin-header card">
+      <div>
+        <span class="badge gold">Dashboard</span>
+        <h1>Dashboard de Vendas</h1>
+        <p class="muted">Análise visual da rifa</p>
+      </div>
+
+      <div class="header-actions">
+        <a href="admin.html" class="btn btn-light">← Voltar para o Admin</a>
+      </div>
+    </header>
+
+    <section class="stats-grid admin-stats">
+      <div class="stat-card">
+        <small>Total de números</small>
+        <strong id="dashTotal">200</strong>
+      </div>
+      <div class="stat-card">
+        <small>Reservados</small>
+        <strong id="dashReserved">0</strong>
+      </div>
+      <div class="stat-card dark">
+        <small>Disponíveis</small>
+        <strong id="dashAvailable">200</strong>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-top wrap">
+        <div>
+          <h2>Filtros do Dashboard</h2>
+          <p class="muted">Filtre os dados antes de gerar os gráficos.</p>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <select id="orderFilter">
+          <option value="numero_asc">Números crescentes</option>
+          <option value="numero_desc">Números decrescentes</option>
+          <option value="data_asc">Primeiras vendas</option>
+          <option value="data_desc">Últimas vendas</option>
+        </select>
+
+        <input type="text" id="searchInput" placeholder="Buscar por nome, telefone, número ou indicação" />
+        <input type="date" id="dateFrom" />
+        <input type="date" id="dateTo" />
+        <input type="time" id="timeFrom" />
+        <input type="time" id="timeTo" />
+
+        <button id="applyDateFilterBtn" class="btn btn-light" type="button">Aplicar período</button>
+        <button id="clearDateFilterBtn" class="btn btn-light" type="button">Limpar filtros</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-top wrap">
+        <div>
+          <h2>Gráficos</h2>
+          <p class="muted">Visualização estilo Power BI</p>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="chart-card">
+          <h3>Ranking por vendedor</h3>
+          <canvas id="chartRanking"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <h3>Vendas por data</h3>
+          <canvas id="chartTimeline"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <h3>Participação nas vendas</h3>
+          <canvas id="chartPie"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-top wrap">
+        <div>
+          <h2>Ranking por vendedor / indicação</h2>
+          <p class="muted">Resumo textual do ranking.</p>
+        </div>
+      </div>
+
+      <div id="rankingList" class="participants-list"></div>
+    </section>
+
+    <div id="dashboardMessage" class="message"></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="dashboard-page.js"></script>
+</body>
+</html>

@@ -57,7 +57,6 @@ const timeFrom = document.getElementById("timeFrom");
 const timeTo = document.getElementById("timeTo");
 const applyDateFilterBtn = document.getElementById("applyDateFilterBtn");
 const clearDateFilterBtn = document.getElementById("clearDateFilterBtn");
-const showRankingBtn = document.getElementById("showRankingBtn");
 const rankingList = document.getElementById("rankingList");
 
 let db = null;
@@ -122,7 +121,6 @@ function getCreatedAtDate(item) {
 function formatDateTime(item) {
   const date = getCreatedAtDate(item);
   if (!date) return "Não informado";
-
   return date.toLocaleString("pt-BR");
 }
 
@@ -530,8 +528,8 @@ function printFullGrid() {
           }
 
           .cell {
-            min-height: 12.6mm;
-            height: 12.6mm;
+            min-height: 12mm;
+            height: 12mm;
             border: 0.35mm solid #666;
             border-radius: 1.5mm;
             display: flex;
@@ -592,6 +590,12 @@ function printFullGrid() {
   }, 300);
 }
 
+function updateAllViews() {
+  renderNumbers();
+  renderParticipants();
+  renderRanking();
+}
+
 function initFirebase() {
   if (!isFirebaseConfigured()) {
     showMessage("Configure o firebase-config.js antes de usar o painel.", "error", loginMessage);
@@ -618,9 +622,7 @@ function listenParticipants() {
       }));
 
       updateCounters();
-      renderNumbers();
-      renderParticipants();
-      renderRanking();
+      updateAllViews();
     },
     (error) => {
       console.error(error);
@@ -673,20 +675,17 @@ adminFilterButtons.forEach((btn) => {
 
 searchInput.addEventListener("input", (event) => {
   currentSearch = event.target.value;
-  renderParticipants();
-  renderRanking();
+  updateAllViews();
 });
 
 clearSearchBtn.addEventListener("click", () => {
   currentSearch = "";
   searchInput.value = "";
-  renderParticipants();
-  renderRanking();
+  updateAllViews();
 });
 
 orderFilter.addEventListener("change", () => {
-  renderParticipants();
-  renderRanking();
+  updateAllViews();
 });
 
 applyDateFilterBtn.addEventListener("click", () => {
@@ -694,8 +693,7 @@ applyDateFilterBtn.addEventListener("click", () => {
   currentDateTo = dateTo.value;
   currentTimeFrom = timeFrom.value;
   currentTimeTo = timeTo.value;
-  renderParticipants();
-  renderRanking();
+  updateAllViews();
 });
 
 clearDateFilterBtn.addEventListener("click", () => {
@@ -709,11 +707,9 @@ clearDateFilterBtn.addEventListener("click", () => {
   timeFrom.value = "";
   timeTo.value = "";
 
-  renderParticipants();
-  renderRanking();
+  updateAllViews();
 });
 
-showRankingBtn.addEventListener("click", renderRanking);
 exportBtn.addEventListener("click", exportExcel);
 printReservedBtn.addEventListener("click", printReservedTable);
 printFullGridBtn.addEventListener("click", printFullGrid);
