@@ -37,7 +37,7 @@
         <div>
           <span class="badge gold">Painel administrativo</span>
           <h1>Organização da rifa</h1>
-          <p class="muted">Gerencie participantes e exporte a planilha.</p>
+          <p class="muted">Gerencie participantes, filtros, impressão e planilha.</p>
         </div>
 
         <div class="header-actions">
@@ -65,13 +65,14 @@
         <div class="section-top wrap">
           <div>
             <h2>Números da rifa</h2>
-            <p class="muted">Filtre como quiser para acompanhar tudo.</p>
+            <p class="muted">Tabela visual dos 200 números.</p>
           </div>
 
           <div class="filters">
             <button class="btn btn-dark admin-filter active" data-filter="todos" type="button">Todos</button>
             <button class="btn btn-light admin-filter" data-filter="disponiveis" type="button">Disponíveis</button>
             <button class="btn btn-light admin-filter" data-filter="reservados" type="button">Reservados</button>
+            <button id="printFullGridBtn" class="btn btn-light" type="button">Imprimir 200 Números</button>
           </div>
         </div>
 
@@ -81,19 +82,58 @@
       <section class="card">
         <div class="section-top wrap">
           <div>
+            <h2>Filtros avançados</h2>
+            <p class="muted">Veja primeiras vendas, últimas e ranking.</p>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <select id="orderFilter">
+            <option value="numero_asc">Números crescentes</option>
+            <option value="numero_desc">Números decrescentes</option>
+            <option value="data_asc">Primeiras vendas</option>
+            <option value="data_desc">Últimas vendas</option>
+          </select>
+
+          <input type="date" id="dateFrom" />
+          <input type="date" id="dateTo" />
+          <input type="time" id="timeFrom" />
+          <input type="time" id="timeTo" />
+
+          <button id="applyDateFilterBtn" class="btn btn-light" type="button">Aplicar período</button>
+          <button id="clearDateFilterBtn" class="btn btn-light" type="button">Limpar período</button>
+          <button id="showRankingBtn" class="btn btn-green" type="button">Ranking de Vendas</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-top wrap">
+          <div>
             <h2>Participantes</h2>
-            <p class="muted">Busque, organize e exporte a planilha.</p>
+            <p class="muted">Busque, organize, exporte e imprima.</p>
           </div>
 
           <div class="toolbar">
             <input type="text" id="searchInput" placeholder="Buscar por nome, telefone, número ou indicação" />
             <button id="clearSearchBtn" class="btn btn-light" type="button">Limpar</button>
+            <button id="printReservedBtn" class="btn btn-light" type="button">Imprimir Reservados</button>
             <button id="exportBtn" class="btn btn-green" type="button">Exportar Excel</button>
           </div>
         </div>
 
         <div id="searchInfo" class="search-info"></div>
         <div id="participantsList" class="participants-list"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-top wrap">
+          <div>
+            <h2>Ranking por vendedor / indicação</h2>
+            <p class="muted">Ranking usando o campo “Quem indicou / Vendedor”.</p>
+          </div>
+        </div>
+
+        <div id="rankingList" class="participants-list"></div>
       </section>
 
       <div id="adminMessage" class="message"></div>

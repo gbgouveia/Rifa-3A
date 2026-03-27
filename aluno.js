@@ -17,11 +17,12 @@ import {
 
 const studentName = document.getElementById("studentName");
 const studentPhone = document.getElementById("studentPhone");
-const studentNumber = document.getElementById("studentNumber");
 const studentReferral = document.getElementById("studentReferral");
 const studentForm = document.getElementById("studentForm");
 const studentMessage = document.getElementById("studentMessage");
 const studentNumbersGrid = document.getElementById("studentNumbersGrid");
+const selectedNumbersBox = document.getElementById("selectedNumbersBox");
+const clearSelectionBtn = document.getElementById("clearSelectionBtn");
 
 const studentTotal = document.getElementById("studentTotal");
 const studentReserved = document.getElementById("studentReserved");
@@ -33,6 +34,7 @@ let db = null;
 let participantsRef = null;
 let participants = [];
 let currentFilter = "todos";
+let selectedNumbers = [];
 
 function showMessage(text, type = "success") {
   studentMessage.textContent = text;
@@ -45,11 +47,7 @@ function showMessage(text, type = "success") {
 }
 
 function isFirebaseConfigured() {
-  return !!(
-    firebaseConfig &&
-    firebaseConfig.apiKey &&
-    firebaseConfig.projectId
-  );
+  return !!(firebaseConfig && firebaseConfig.apiKey && firebaseConfig.projectId);
 }
 
 function normalizePhone(phone) {
@@ -69,24 +67,30 @@ function updateCounters() {
   studentAvailable.textContent = available;
 }
 
-function clearSelectedVisual() {
-  document.querySelectorAll(".number-item").forEach((item) => {
-    item.classList.remove("selected");
-  });
+function renderSelectedNumbersBox() {
+  if (!selectedNumbers.length) {
+    selectedNumbersBox.innerHTML = "Nenhum número selecionado.";
+    return;
+  }
+
+  const sorted = [...selectedNumbers].sort((a, b) => a - b);
+
+  selectedNumbersBox.innerHTML = sorted
+    .map((num) => `<span class="number-pill">${num}</span>`)
+    .join(" ");
 }
 
-function syncSelectedInput() {
-  const value = Number(studentNumber.value);
-  clearSelectedVisual();
+function toggleSelectedNumber(number) {
+  const index = selectedNumbers.indexOf(number);
 
-  if (!value || value < 1 || value > TOTAL_NUMBERS) return;
+  if (index >= 0) {
+    selectedNumbers.splice(index, 1);
+  } else {
+    selectedNumbers.push(number);
+  }
 
-  document.querySelectorAll(".number-item").forEach((item) => {
-    const num = Number(item.dataset.number);
-    if (num === value && !item.classList.contains("reserved")) {
-      item.classList.add("selected");
-    }
-  });
+  renderSelectedNumbersBox();
+  renderNumbers();
 }
 
 function applyFilter() {
@@ -130,17 +134,18 @@ function renderNumbers() {
     if (isReserved(i)) {
       item.classList.add("reserved");
     } else {
-      item.addEventListener("click", () => {
-        clearSelectedVisual();
+      if (selectedNumbers.includes(i)) {
         item.classList.add("selected");
-        studentNumber.value = i;
+      }
+
+      item.addEventListener("click", () => {
+        toggleSelectedNumber(i);
       });
     }
 
     studentNumbersGrid.appendChild(item);
   }
 
-  syncSelectedInput();
   applyFilter();
 }
 
@@ -148,26 +153,30 @@ function getFormData() {
   return {
     nome: studentName.value.trim(),
     telefone: studentPhone.value.trim(),
-    numero: Number(studentNumber.value),
+    numeros: [...selectedNumbers],
     indicacao: studentReferral.value.trim()
   };
 }
 
 function validateForm(data) {
-  if (!data.nome || !data.telefone || !data.numero) {
-    throw new Error("Preencha nome, telefone e número.");
+  if (!data.nome || !data.telefone) {
+    throw new Error("Preencha nome e telefone.");
   }
 
-  if (data.numero < 1 || data.numero > TOTAL_NUMBERS) {
-    throw new Error(`Escolha um número entre 1 e ${TOTAL_NUMBERS}.`);
-  }
-
-  if (isReserved(data.numero)) {
-    throw new Error("Esse número já foi reservado.");
+  if (!data.numeros.length) {
+    throw new Error("Selecione pelo menos um número.");
   }
 
   if (normalizePhone(data.telefone).length < 10) {
     throw new Error("Digite um telefone válido.");
+  }
+
+  const invalidNumbers = data.numeros.filter(
+    (num) => num < 1 || num > TOTAL_NUMBERS || isReserved(num)
+  );
+
+  if (invalidNumbers.length) {
+    throw new Error("Um ou mais números selecionados já foram reservados.");
   }
 }
 
@@ -176,18 +185,22 @@ async function saveRegistration(data) {
     throw new Error("Firebase não configurado.");
   }
 
-  await addDoc(participantsRef, {
-    nome: data.nome,
-    telefone: data.telefone,
-    numero: Number(data.numero),
-    indicacao: data.indicacao || "",
-    criadoEm: serverTimestamp()
-  });
+  for (const numero of data.numeros) {
+    await addDoc(participantsRef, {
+      nome: data.nome,
+      telefone: data.telefone,
+      numero: Number(numero),
+      indicacao: data.indicacao || "",
+      criadoEm: serverTimestamp()
+    });
+  }
 }
 
 function clearForm() {
   studentForm.reset();
-  clearSelectedVisual();
+  selectedNumbers = [];
+  renderSelectedNumbersBox();
+  renderNumbers();
 }
 
 function initFirebase() {
@@ -216,7 +229,10 @@ function listenParticipants() {
         ...docItem.data()
       }));
 
+      selectedNumbers = selectedNumbers.filter((num) => !isReserved(num));
+
       updateCounters();
+      renderSelectedNumbersBox();
       renderNumbers();
     },
     (error) => {
@@ -226,10 +242,14 @@ function listenParticipants() {
   );
 }
 
-studentNumber.addEventListener("input", syncSelectedInput);
-
 studentFilterButtons.forEach((btn) => {
   btn.addEventListener("click", () => setFilter(btn.dataset.filter));
+});
+
+clearSelectionBtn.addEventListener("click", () => {
+  selectedNumbers = [];
+  renderSelectedNumbersBox();
+  renderNumbers();
 });
 
 studentForm.addEventListener("submit", async (event) => {
@@ -239,7 +259,15 @@ studentForm.addEventListener("submit", async (event) => {
     const data = getFormData();
     validateForm(data);
     await saveRegistration(data);
-    showMessage("Cadastro salvo com sucesso.", "success");
+
+    const qtd = data.numeros.length;
+    showMessage(
+      qtd === 1
+        ? "Cadastro salvo com sucesso."
+        : `Cadastro salvo com sucesso para ${qtd} números.`,
+      "success"
+    );
+
     clearForm();
   } catch (error) {
     console.error(error);
@@ -249,6 +277,7 @@ studentForm.addEventListener("submit", async (event) => {
 
 function start() {
   updateCounters();
+  renderSelectedNumbersBox();
   renderNumbers();
   setFilter("todos");
 

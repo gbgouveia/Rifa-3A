@@ -423,3 +423,30 @@ body {
     align-items: flex-start;
   }
 }
+.number-item.selected {
+  background: #dbeafe;
+  border-color: #2563eb;
+}
+
+.number-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #111827;
+  color: white;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: bold;
+  margin: 4px 6px 4px 0;
+}
+
+select {
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  padding: 12px 14px;
+  font-size: 15px;
+  outline: none;
+  background: white;
+}

@@ -40,13 +40,25 @@ const adminAvailable = document.getElementById("adminAvailable");
 
 const adminNumbersGrid = document.getElementById("adminNumbersGrid");
 const adminFilterButtons = document.querySelectorAll(".admin-filter");
+const printFullGridBtn = document.getElementById("printFullGridBtn");
 
 const searchInput = document.getElementById("searchInput");
 const clearSearchBtn = document.getElementById("clearSearchBtn");
 const exportBtn = document.getElementById("exportBtn");
+const printReservedBtn = document.getElementById("printReservedBtn");
 const searchInfo = document.getElementById("searchInfo");
 const participantsList = document.getElementById("participantsList");
 const adminMessage = document.getElementById("adminMessage");
+
+const orderFilter = document.getElementById("orderFilter");
+const dateFrom = document.getElementById("dateFrom");
+const dateTo = document.getElementById("dateTo");
+const timeFrom = document.getElementById("timeFrom");
+const timeTo = document.getElementById("timeTo");
+const applyDateFilterBtn = document.getElementById("applyDateFilterBtn");
+const clearDateFilterBtn = document.getElementById("clearDateFilterBtn");
+const showRankingBtn = document.getElementById("showRankingBtn");
+const rankingList = document.getElementById("rankingList");
 
 let db = null;
 let auth = null;
@@ -54,6 +66,10 @@ let participantsRef = null;
 let participants = [];
 let currentFilter = "todos";
 let currentSearch = "";
+let currentDateFrom = "";
+let currentDateTo = "";
+let currentTimeFrom = "";
+let currentTimeTo = "";
 
 function showMessage(text, type = "success", target = adminMessage) {
   target.textContent = text;
@@ -66,11 +82,7 @@ function showMessage(text, type = "success", target = adminMessage) {
 }
 
 function isFirebaseConfigured() {
-  return !!(
-    firebaseConfig &&
-    firebaseConfig.apiKey &&
-    firebaseConfig.projectId
-  );
+  return !!(firebaseConfig && firebaseConfig.apiKey && firebaseConfig.projectId);
 }
 
 function normalizeText(value) {
@@ -91,6 +103,27 @@ function updateCounters() {
   adminTotal.textContent = TOTAL_NUMBERS;
   adminReserved.textContent = reserved;
   adminAvailable.textContent = available;
+}
+
+function getCreatedAtDate(item) {
+  if (!item.criadoEm) return null;
+
+  if (typeof item.criadoEm.toDate === "function") {
+    return item.criadoEm.toDate();
+  }
+
+  if (item.criadoEm.seconds) {
+    return new Date(item.criadoEm.seconds * 1000);
+  }
+
+  return null;
+}
+
+function formatDateTime(item) {
+  const date = getCreatedAtDate(item);
+  if (!date) return "Não informado";
+
+  return date.toLocaleString("pt-BR");
 }
 
 function setFilter(filter) {
@@ -131,6 +164,60 @@ function renderNumbers() {
   }
 }
 
+function buildStartDateTime() {
+  if (!currentDateFrom) return null;
+  return new Date(`${currentDateFrom}T${currentTimeFrom || "00:00"}`);
+}
+
+function buildEndDateTime() {
+  if (!currentDateTo) return null;
+  return new Date(`${currentDateTo}T${currentTimeTo || "23:59"}`);
+}
+
+function participantPassesDateFilter(item) {
+  const createdAt = getCreatedAtDate(item);
+  if (!createdAt) return true;
+
+  const start = buildStartDateTime();
+  const end = buildEndDateTime();
+
+  if (start && createdAt < start) return false;
+  if (end && createdAt > end) return false;
+
+  return true;
+}
+
+function applyOrdering(data) {
+  const ordered = [...data];
+  const mode = orderFilter.value;
+
+  if (mode === "numero_asc") {
+    ordered.sort((a, b) => Number(a.numero) - Number(b.numero));
+  }
+
+  if (mode === "numero_desc") {
+    ordered.sort((a, b) => Number(b.numero) - Number(a.numero));
+  }
+
+  if (mode === "data_asc") {
+    ordered.sort((a, b) => {
+      const da = getCreatedAtDate(a)?.getTime() || 0;
+      const db = getCreatedAtDate(b)?.getTime() || 0;
+      return da - db;
+    });
+  }
+
+  if (mode === "data_desc") {
+    ordered.sort((a, b) => {
+      const da = getCreatedAtDate(a)?.getTime() || 0;
+      const db = getCreatedAtDate(b)?.getTime() || 0;
+      return db - da;
+    });
+  }
+
+  return ordered;
+}
+
 function filteredParticipants() {
   let data = [...participants];
 
@@ -150,6 +237,9 @@ function filteredParticipants() {
       );
     });
   }
+
+  data = data.filter(participantPassesDateFilter);
+  data = applyOrdering(data);
 
   searchInfo.textContent = term
     ? `Busca: "${currentSearch}" • ${data.length} resultado(s).`
@@ -178,7 +268,8 @@ function renderParticipants() {
         <p><strong>Nome:</strong> ${item.nome}</p>
         <p><strong>Telefone:</strong> ${item.telefone}</p>
         <p><strong>Número:</strong> <span class="number-pill">${item.numero}</span></p>
-        <p><strong>Quem indicou:</strong> ${item.indicacao || "Não informado"}</p>
+        <p><strong>Quem indicou / Vendedor:</strong> ${item.indicacao || "Não informado"}</p>
+        <p><strong>Data e hora:</strong> ${formatDateTime(item)}</p>
       </div>
 
       <div class="participant-actions">
@@ -217,17 +308,54 @@ function renderParticipants() {
   });
 }
 
+function renderRanking() {
+  const data = filteredParticipants();
+  const rankingMap = {};
+
+  data.forEach((item) => {
+    const seller = (item.indicacao || "Sem indicação").trim() || "Sem indicação";
+    rankingMap[seller] = (rankingMap[seller] || 0) + 1;
+  });
+
+  const ranking = Object.entries(rankingMap)
+    .map(([nome, total]) => ({ nome, total }))
+    .sort((a, b) => b.total - a.total);
+
+  rankingList.innerHTML = "";
+
+  if (!ranking.length) {
+    rankingList.innerHTML = `<div class="empty-box">Nenhum dado para ranking.</div>`;
+    return;
+  }
+
+  ranking.forEach((item, index) => {
+    const card = document.createElement("div");
+    card.className = "participant-card";
+
+    card.innerHTML = `
+      <div class="participant-content">
+        <p><strong>#${index + 1}</strong></p>
+        <p><strong>Vendedor / Indicação:</strong> ${item.nome}</p>
+        <p><strong>Total vendido:</strong> <span class="number-pill">${item.total}</span></p>
+      </div>
+    `;
+
+    rankingList.appendChild(card);
+  });
+}
+
 function exportExcel() {
   if (!participants.length) {
     showMessage("Não há participantes para exportar.", "error");
     return;
   }
 
-  const data = participants.map((item) => ({
+  const data = filteredParticipants().map((item) => ({
     Nome: item.nome,
     Telefone: item.telefone,
     Numero: item.numero,
     Indicacao: item.indicacao || "",
+    DataHora: formatDateTime(item),
     ID: item.id
   }));
 
@@ -236,6 +364,211 @@ function exportExcel() {
 
   XLSX.utils.book_append_sheet(workbook, worksheet, "Rifa");
   XLSX.writeFileXLSX(workbook, EXCEL_FILE_NAME);
+}
+
+function printReservedTable() {
+  const reserved = [...participants].sort((a, b) => Number(a.numero) - Number(b.numero));
+
+  if (!reserved.length) {
+    showMessage("Não há números reservados para imprimir.", "error");
+    return;
+  }
+
+  const rows = reserved.map((item) => `
+    <tr>
+      <td>${item.numero}</td>
+      <td>${item.nome}</td>
+      <td>${item.telefone}</td>
+      <td>${item.indicacao || "Não informado"}</td>
+      <td>${formatDateTime(item)}</td>
+    </tr>
+  `).join("");
+
+  const printWindow = window.open("", "_blank");
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Tabela de Números Reservados</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 24px; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+          th { background: #f3f4f6; }
+        </style>
+      </head>
+      <body>
+        <h1>Tabela de Números Reservados</h1>
+        <p>Total de reservados: ${reserved.length}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Nome</th>
+              <th>Telefone</th>
+              <th>Indicação</th>
+              <th>Data e Hora</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+}
+
+function printFullGrid() {
+  const cells = [];
+
+  for (let i = 1; i <= TOTAL_NUMBERS; i++) {
+    const reserved = isReserved(i);
+    cells.push(`
+      <div class="print-cell ${reserved ? "reserved" : "available"}">
+        ${i}
+      </div>
+    `);
+  }
+
+  const printWindow = window.open("", "_blank");
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Tabela Completa da Rifa</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 8mm;
+          }
+
+          * {
+            box-sizing: border-box;
+          }
+
+          html, body {
+            width: 210mm;
+            height: 297mm;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          body {
+            padding: 4mm;
+          }
+
+          .header {
+            text-align: center;
+            margin-bottom: 4mm;
+          }
+
+          .header h1 {
+            font-size: 16px;
+            margin: 0 0 2mm 0;
+          }
+
+          .header p {
+            font-size: 10px;
+            margin: 0;
+          }
+
+          .legend {
+            display: flex;
+            justify-content: center;
+            gap: 12mm;
+            margin: 4mm 0 5mm 0;
+            font-size: 10px;
+          }
+
+          .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 2mm;
+          }
+
+          .legend-box {
+            width: 5mm;
+            height: 5mm;
+            border: 1px solid #333;
+          }
+
+          .legend-box.available {
+            background: #ffffff;
+          }
+
+          .legend-box.reserved {
+            background: #111827;
+          }
+
+          .print-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 2mm;
+          }
+
+          .print-cell {
+            height: 16mm;
+            border: 1px solid #444;
+            border-radius: 2mm;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            background: #ffffff;
+            color: #111111;
+          }
+
+          .print-cell.reserved {
+            background: #111827 !important;
+            color: #ffffff !important;
+            border-color: #111827 !important;
+          }
+
+          .print-cell.available {
+            background: #ffffff !important;
+            color: #111111 !important;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Tabela Completa da Rifa</h1>
+          <p>Os números escuros já estão reservados</p>
+        </div>
+
+        <div class="legend">
+          <div class="legend-item">
+            <span class="legend-box available"></span>
+            <span>Disponível</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-box reserved"></span>
+            <span>Reservado</span>
+          </div>
+        </div>
+
+        <div class="print-grid">
+          ${cells.join("")}
+        </div>
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+
+  setTimeout(() => {
+    printWindow.print();
+  }, 300);
 }
 
 function initFirebase() {
@@ -266,6 +599,7 @@ function listenParticipants() {
       updateCounters();
       renderNumbers();
       renderParticipants();
+      renderRanking();
     },
     (error) => {
       console.error(error);
@@ -319,20 +653,55 @@ adminFilterButtons.forEach((btn) => {
 searchInput.addEventListener("input", (event) => {
   currentSearch = event.target.value;
   renderParticipants();
+  renderRanking();
 });
 
 clearSearchBtn.addEventListener("click", () => {
   currentSearch = "";
   searchInput.value = "";
   renderParticipants();
+  renderRanking();
 });
 
+orderFilter.addEventListener("change", () => {
+  renderParticipants();
+  renderRanking();
+});
+
+applyDateFilterBtn.addEventListener("click", () => {
+  currentDateFrom = dateFrom.value;
+  currentDateTo = dateTo.value;
+  currentTimeFrom = timeFrom.value;
+  currentTimeTo = timeTo.value;
+  renderParticipants();
+  renderRanking();
+});
+
+clearDateFilterBtn.addEventListener("click", () => {
+  currentDateFrom = "";
+  currentDateTo = "";
+  currentTimeFrom = "";
+  currentTimeTo = "";
+
+  dateFrom.value = "";
+  dateTo.value = "";
+  timeFrom.value = "";
+  timeTo.value = "";
+
+  renderParticipants();
+  renderRanking();
+});
+
+showRankingBtn.addEventListener("click", renderRanking);
 exportBtn.addEventListener("click", exportExcel);
+printReservedBtn.addEventListener("click", printReservedTable);
+printFullGridBtn.addEventListener("click", printFullGrid);
 
 function start() {
   updateCounters();
   renderNumbers();
   renderParticipants();
+  renderRanking();
   setFilter("todos");
 
   const ok = initFirebase();
