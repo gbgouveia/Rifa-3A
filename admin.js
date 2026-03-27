@@ -428,7 +428,7 @@ function printFullGrid() {
     const reserved = isReserved(i);
 
     cells.push(`
-      <div class="cell ${reserved ? "reserved" : ""}">
+      <div class="cell ${reserved ? "reserved" : "available"}">
         ${i}
       </div>
     `);
@@ -443,58 +443,142 @@ function printFullGrid() {
         <style>
           @page {
             size: A4 portrait;
-            margin: 4mm;
+            margin: 3mm;
+          }
+
+          * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
 
           html, body {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+            width: 210mm;
+            height: 297mm;
+            font-family: Arial, Helvetica, sans-serif;
+            background: white;
+            color: #111;
           }
 
           body {
-            padding: 3mm;
+            padding: 2mm;
           }
 
-          h1 {
-            font-size: 12px;
+          .page {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .header {
             text-align: center;
-            margin: 0 0 3mm 0;
+            margin-bottom: 2mm;
+            flex: 0 0 auto;
           }
 
-          .grid {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
+          .header h1 {
+            margin: 0;
+            font-size: 11px;
+            line-height: 1.1;
+          }
+
+          .header p {
+            margin: 1mm 0 0 0;
+            font-size: 8px;
+            line-height: 1.1;
+          }
+
+          .legend {
+            display: flex;
+            justify-content: center;
+            gap: 6mm;
+            margin: 2mm 0 2mm 0;
+            font-size: 8px;
+            flex: 0 0 auto;
+          }
+
+          .legend-item {
+            display: flex;
+            align-items: center;
             gap: 1.5mm;
           }
 
+          .legend-box {
+            width: 4mm;
+            height: 4mm;
+            border: 0.3mm solid #555;
+          }
+
+          .legend-box.available {
+            background: #ffffff;
+          }
+
+          .legend-box.reserved {
+            background: #111827 !important;
+            border-color: #111827 !important;
+          }
+
+          .grid {
+            flex: 1 1 auto;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 1mm;
+            align-content: stretch;
+          }
+
           .cell {
-            height: 11mm;
-            border: 1px solid #444;
-            border-radius: 2mm;
+            min-height: 12.6mm;
+            height: 12.6mm;
+            border: 0.35mm solid #666;
+            border-radius: 1.5mm;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
-            font-weight: bold;
-            background: white;
+            font-size: 9px;
+            font-weight: 700;
+            line-height: 1;
+            background: #ffffff !important;
+            color: #111111 !important;
+            page-break-inside: avoid;
+            break-inside: avoid;
           }
 
           .cell.reserved {
-            background: #000 !important;
-            color: #fff !important;
-            border-color: #000 !important;
+            background: #111827 !important;
+            color: #ffffff !important;
+            border-color: #111827 !important;
+          }
+
+          .cell.available {
+            background: #ffffff !important;
+            color: #111111 !important;
           }
         </style>
       </head>
-
       <body>
-        <h1>Tabela da Rifa (200 números)</h1>
+        <div class="page">
+          <div class="header">
+            <h1>Tabela Completa da Rifa</h1>
+            <p>Números escuros = reservados</p>
+          </div>
 
-        <div class="grid">
-          ${cells.join("")}
+          <div class="legend">
+            <div class="legend-item">
+              <span class="legend-box available"></span>
+              <span>Disponível</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-box reserved"></span>
+              <span>Reservado</span>
+            </div>
+          </div>
+
+          <div class="grid">
+            ${cells.join("")}
+          </div>
         </div>
       </body>
     </html>
@@ -505,8 +589,8 @@ function printFullGrid() {
 
   setTimeout(() => {
     printWindow.print();
-  }, 200);
-} 
+  }, 300);
+}
 
 function initFirebase() {
   if (!isFirebaseConfigured()) {
